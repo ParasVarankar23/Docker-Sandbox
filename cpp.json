@@ -1,0 +1,10 @@
+{
+  "language": "java",
+  "files": [
+    {
+      "name": "Main.java",
+      "content": "import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        System.out.print(\"Enter your name: \");\n        String name = sc.nextLine();\n        System.out.println(\"Hello, \" + name + \"!\");\n\n        System.out.print(\"Enter first number: \");\n        int num1 = sc.nextInt();\n        System.out.print(\"Enter second number: \");\n        int num2 = sc.nextInt();\n\n        System.out.println(\"Sum: \" + (num1 + num2));\n        sc.close();\n    }\n}"
+    }
+  ],
+  "stdin": "a\n1\n2\n"
+}
