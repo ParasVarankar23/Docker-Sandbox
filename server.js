@@ -51,6 +51,40 @@ const languages = {
    DOCKER HELPER
 ========================= */
 
+function checkDockerAvailability() {
+  return new Promise((resolve) => {
+    const proc = spawn("docker", ["info"]);
+    let stdout = "";
+    let stderr = "";
+
+    proc.stdout.on("data", (data) => {
+      stdout += data.toString();
+    });
+
+    proc.stderr.on("data", (data) => {
+      stderr += data.toString();
+    });
+
+    proc.on("close", (code) => {
+      resolve({
+        available: code === 0,
+        code,
+        stdout,
+        stderr: stderr.trim(),
+      });
+    });
+
+    proc.on("error", (err) => {
+      resolve({
+        available: false,
+        code: null,
+        stdout: "",
+        stderr: err.message,
+      });
+    });
+  });
+}
+
 function runDockerCommand(args, input = null, timeoutMs = 5000, requestId = null) {
   return new Promise((resolve, reject) => {
     const logPrefix = requestId ? `[Request ${requestId}]` : '';
@@ -446,17 +480,23 @@ app.get("/debug/node", async (req, res) => {
    HEALTH CHECK
 ========================= */
 
-app.get("/health", (req, res) => {
+app.get("/health", async (req, res) => {
+  const dockerStatus = await checkDockerAvailability();
+
   res.json({ 
-    status: "ok", 
+    status: dockerStatus.available ? "ok" : "degraded",
     timestamp: new Date().toISOString(),
-    activeRequests: activeRequests.size
+    activeRequests: activeRequests.size,
+    docker: {
+      available: dockerStatus.available,
+      error: dockerStatus.stderr || null,
+    },
   });
 });
 
 /* ========================= */
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Secure Sandbox running on port ${PORT} 🚀`);
   console.log(`Debug endpoints:`);
